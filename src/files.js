@@ -28,14 +28,14 @@ function createFiles(file, dir, type = "components") {
   }
 
   const filename = file + ".js";
-  const folder = type === "lib" || type === "utils" ? type : `${type}/${file}`;
+  const folder =
+    type === "lib" || type === "utils" ? `app/${type}` : `app/${type}/${file}`;
 
   try {
     if (!fs.existsSync(folder)) {
       fs.mkdirSync(folder, { recursive: true });
       success("Created Folder: " + folder);
     }
-
     const fd = fs.openSync(`${folder}\/${file}.js`, "wx");
     switch (type) {
       case "components":
@@ -60,7 +60,7 @@ function createFiles(file, dir, type = "components") {
     success("Created File  : " + folder + "/" + filename);
 
     if (type === "components" || type === "pages") {
-      // fs.openSync(`${folder}\/index.js`, "wx"); // Only operns
+      // fs.openSync(`${folder}\/index.js`, "wx"); // Only opens
       fs.writeFileSync(`${folder}\/index.js`, BoilerPlates.index(file));
       success("Created File  : " + folder + "/index.js");
 
