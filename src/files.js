@@ -6,6 +6,7 @@
 const { TYPES } = require("./constants");
 const fs = require("fs");
 const { info, success, error } = require("./print");
+const BoilerPlates = require("./boilerplates");
 
 /**
  * Creates files for you.
@@ -14,27 +15,59 @@ const { info, success, error } = require("./print");
  * @param {string} dir
  * @param {string} type
  */
-
 function createFiles(file, dir, type = "components") {
   info(`We are creating ${file} pages for you...`);
   info(`Working Directory: ${dir}\n...`);
+  const __file_name = file;
+
+  /**
+   * Check if file type is container and rename file accordingly
+   */
+  if (type === "containers") {
+    file = file + "Container";
+  }
+
   const filename = file + ".js";
-  const _dir = `${type}/${file}`;
+  const folder = type === "lib" || type === "utils" ? type : `${type}/${file}`;
 
   try {
-    if (!fs.existsSync(_dir)) {
-      fs.mkdirSync(_dir, { recursive: true });
-      success("Created Folder: " + _dir);
+    if (!fs.existsSync(folder)) {
+      fs.mkdirSync(folder, { recursive: true });
+      success("Created Folder: " + folder);
     }
 
-    fs.openSync(`${_dir}\/${file}.js`, "wx");
-    success("Created File  : " + _dir + "/" + filename);
+    const fd = fs.openSync(`${folder}\/${file}.js`, "wx");
+    switch (type) {
+      case "components":
+        fs.writeFileSync(fd, BoilerPlates.component(__file_name));
+        break;
+      case "containers":
+        fs.writeFileSync(fd, BoilerPlates.container(__file_name));
+        break;
+      case "utils":
+        fs.writeFileSync(fd, BoilerPlates.utils(__file_name));
+        break;
+      case "lib":
+        fs.writeFileSync(fd, BoilerPlates.lib(__file_name));
+        break;
+      case "pages":
+        fs.writeFileSync(fd, BoilerPlates.page(__file_name));
+        break;
+      default:
+        break;
+    }
 
-    fs.openSync(`${_dir}\/index.js`, "wx");
-    success("Created File  : " + _dir + "/index.js");
+    success("Created File  : " + folder + "/" + filename);
 
-    fs.openSync(`${_dir}\/styles.js`, "wx");
-    success("Created File  : " + _dir + "/styles.js");
+    if (type === "components" || type === "pages") {
+      // fs.openSync(`${folder}\/index.js`, "wx"); // Only operns
+      fs.writeFileSync(`${folder}\/index.js`, BoilerPlates.index(file));
+      success("Created File  : " + folder + "/index.js");
+
+      // fs.openSync(`${folder}\/styles.js`, "wx");
+      fs.writeFileSync(`${folder}\/styles.js`, BoilerPlates.styles(file));
+      success("Created File  : " + folder + "/styles.js");
+    }
   } catch (err) {
     error(err.message);
   }
@@ -49,7 +82,7 @@ function makeFile(file, type, dir) {
     case TYPES.page:
       createFiles(file, dir, "pages");
       break;
-    case TYPES.component:
+    case TYPES.container:
       createFiles(file, dir, "containers");
       break;
     case TYPES.lib:
@@ -58,16 +91,27 @@ function makeFile(file, type, dir) {
     case TYPES.utils:
       createFiles(file, dir, "utils");
       break;
+    case TYPES.container:
+      createFiles(file, dir, "containers");
+      break;
     default:
       createFiles(file, dir);
       break;
   }
 }
 
+/**
+ * Write data to file
+ * @function
+ * @param {string} str (data to be written)
+ */
+function writeToFile(path, str) {
+  console.log("content written");
+}
+
 module.exports = {
   print: function() {
     console.log("Hello world");
   },
-
   makeFile
 };
